@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>تطبيق شوڤ</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        shoufBg: '#09090b',
+                        shoufCard: '#18181b',
+                        shoufMaroon: '#700b34',
+                        shoufBorder: '#9f1239'
+                    },
+                    fontFamily: {
+                        cairo: ['Cairo', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: #09090b;
+            color: #ffffff;
+            margin: 0;
+            overflow-x: hidden;
+            user-select: none;
+        }
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+        @keyframes dance {
+            0%, 100% { transform: translateY(0) rotate(0deg); }
+            50% { transform: translateY(-8px) rotate(2deg); }
+        }
+        .animate-dance {
+            animation: dance 2s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center">
+
+    <!-- 1. شاشة الدخول (Splash Screen) -->
+    <div id="splash-screen" class="fixed inset-0 z-50 flex flex-col items-center justify-center bg-shoufBg transition-opacity duration-700">
+        <div class="relative w-36 h-36 md:w-44 md:h-44 rounded-3xl overflow-hidden bg-shoufMaroon flex items-center justify-center shadow-2xl mb-6 animate-dance border border-rose-900/50">
+            <span class="text-4xl font-black text-white tracking-widest">شوڤ</span>
+        </div>
+        <h1 class="text-3xl md:text-4xl font-black text-white tracking-wider mb-2">شوڤ</h1>
+        <p class="text-sm font-semibold text-rose-400 tracking-widest">عالمك هنا</p>
+    </div>
+
+    <!-- حاوية التطبيق الرئيسية -->
+    <div id="app-container" class="w-full max-w-md md:max-w-xl min-h-screen flex flex-col bg-shoufBg hidden relative shadow-2xl pb-20">
+
+        <!-- الشريط العلوي (الهيدر): الخيارات يمين ووسط، واسم شوف في اليسار -->
+        <header class="sticky top-0 z-40 bg-shoufMaroon border-b border-rose-900/40 px-4 py-3 flex items-center justify-between shadow-md">
+            <nav class="flex items-center gap-5 text-sm font-bold text-rose-100">
+                <button onclick="switchTab('home')" id="nav-home" class="text-white border-b-2 border-white pb-0.5 transition-all">الرئيسية</button>
+                <button onclick="switchTab('search')" id="nav-search" class="hover:text-white transition-all">البحث</button>
+                <button onclick="switchTab('settings')" id="nav-settings" class="hover:text-white transition-all">الإعدادات</button>
+            </nav>
+            <div class="flex items-center gap-2">
+                <span class="text-xl font-black text-white tracking-wider">شوڤ</span>
+            </div>
+        </header>
+
+        <!-- المحتوى الرئيسي -->
+        <main class="flex-1 overflow-y-auto">
+
+            <!-- تبويب الرئيسية (يعرض بوستر واسم مسلسل بائعة الورد) -->
+            <div id="tab-home" class="p-4 space-y-4">
+                <h3 class="text-white font-bold text-base border-r-4 border-shoufMaroon pr-2">المسلسلات المتاحة</h3>
+                <div id="home-works-container" class="grid grid-cols-2 gap-4"></div>
+            </div>
+
+            <!-- تبويب البحث -->
+            <div id="tab-search" class="hidden p-4 space-y-4">
+                <div class="relative">
+                    <input type="text" id="search-input" oninput="handleSearch(this.value)" placeholder="ابحث عن مسلسل، فيلم، أو برنامج..." class="w-full bg-shoufCard border border-rose-900/40 rounded-xl px-4 py-3 text-white placeholder-rose-400/60 focus:outline-none focus:border-rose-600 text-sm">
+                    <i class="fas fa-search absolute left-4 top-3.5 text-rose-400"></i>
+                </div>
+                <div id="search-results" class="space-y-3">
+                    <p class="text-xs text-rose-400 text-center mt-6">اكتب اسم المسلسل للبحث عنه فوراً...</p>
+                </div>
+            </div>
+
+            <!-- تبويب الإعدادات -->
+            <div id="tab-settings" class="hidden p-4 space-y-3">
+                <h2 class="text-lg font-bold text-white mb-2">إعدادات التطبيق</h2>
+                
+                <div onclick="openSettingsModal('login')" class="bg-shoufCard p-4 rounded-2xl border border-rose-900/30 flex items-center justify-between cursor-pointer hover:border-rose-600 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-shoufMaroon/40 text-rose-400 flex items-center justify-center">
+                            <i class="fas fa-user-circle text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">سجل الدخول</h3>
+                            <p class="text-xs text-rose-400/70">برقم الهاتف، الإيميل، أو البريد الإلكتروني</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left text-rose-400 text-xs"></i>
+                </div>
+
+                <div onclick="openSettingsModal('downloads')" class="bg-shoufCard p-4 rounded-2xl border border-rose-900/30 flex items-center justify-between cursor-pointer hover:border-rose-600 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-shoufMaroon/40 text-rose-400 flex items-center justify-center">
+                            <i class="fas fa-download text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">التحميلات</h3>
+                            <p class="text-xs text-rose-400/70">قائمة الأعمال المحملة لمشاهدتها بدون إنترنت</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left text-rose-400 text-xs"></i>
+                </div>
+
+                <div onclick="openSettingsModal('policy')" class="bg-shoufCard p-4 rounded-2xl border border-rose-900/30 flex items-center justify-between cursor-pointer hover:border-rose-600 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-shoufMaroon/40 text-rose-400 flex items-center justify-center">
+                            <i class="fas fa-shield-alt text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">سياسة التطبيق</h3>
+                            <p class="text-xs text-rose-400/70">شروط الاستخدام والخصوصية</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left text-rose-400 text-xs"></i>
+                </div>
+
+                <div onclick="openSettingsModal('customization')" class="bg-shoufCard p-4 rounded-2xl border border-rose-900/30 flex items-center justify-between cursor-pointer hover:border-rose-600 transition-all">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-shoufMaroon/40 text-rose-400 flex items-center justify-center">
+                            <i class="fas fa-sliders-h text-lg"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-bold text-white text-sm">تخصيص</h3>
+                            <p class="text-xs text-rose-400/70">تصفية حسب الجنسية، سنة الإنتاج، النوع، أو الأبطال</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-left text-rose-400 text-xs"></i>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- صفحة تفاصيل العرض (المسلسل) -->
+        <div id="detail-page" class="absolute inset-0 bg-shoufBg z-50 hidden flex flex-col overflow-y-auto">
+            <div class="p-4 flex items-center justify-between sticky top-0 bg-shoufBg/80 backdrop-blur z-20 border-b border-rose-900/20">
+                <button onclick="closeDetail()" class="w-10 h-10 rounded-full bg-shoufCard text-white flex items-center justify-center border border-rose-900/30">
+                    <i class="fas fa-arrow-right"></i>
+                </button>
+                <span class="font-bold text-white text-sm">تفاصيل العمل</span>
+                <div class="w-10"></div>
+            </div>
+
+            <div class="p-4 flex flex-col items-center space-y-5">
+                <!-- بوستر المسلسل -->
+                <div class="w-48 h-64 rounded-2xl overflow-hidden shadow-2xl border-2 border-rose-900/40 bg-shoufCard">
+                    <img id="detail-poster" src="" class="w-full h-full object-cover">
+                </div>
+
+                <h2 id="detail-title" class="text-2xl font-black text-white text-center"></h2>
+
+                <button onclick="playMedia('https://www.youtube.com/embed/Us-ReJ03KlM?autoplay=1')" class="w-full max-w-sm py-3.5 bg-shoufMaroon hover:bg-rose-900 text-white font-bold rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all">
+                    <i class="fas fa-play"></i>
+                    <span>تشغيل الآن (الحلقة 73)</span>
+                </button>
+
+                <div class="w-full max-w-sm space-y-3">
+                    <div class="flex items-center justify-center gap-3 text-xs text-rose-400 font-bold">
+                        <span id="detail-country" class="bg-shoufCard px-3 py-1.5 rounded-xl border border-rose-900/30"></span>
+                        <span id="detail-year" class="bg-shoufCard px-3 py-1.5 rounded-xl border border-rose-900/30"></span>
+                    </div>
+
+                    <div class="bg-shoufCard p-4 rounded-2xl border border-rose-900/20 space-y-2">
+                        <h4 class="font-bold text-rose-400 text-sm text-center">نبذة عن العمل</h4>
+                        <p id="detail-desc" class="text-xs text-rose-200/80 leading-relaxed text-center"></p>
+                    </div>
+                </div>
+
+                <div class="w-full max-w-sm space-y-3 pt-4">
+                    <h4 class="font-bold text-white text-sm border-r-4 border-shoufMaroon pr-2">سلم الحلقات</h4>
+                    <div id="episodes-list" class="space-y-2 pb-10"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- مشغل الفيديو السينمائي متكامل مع YouTube Iframe -->
+        <div id="video-player-modal" class="fixed inset-0 bg-black z-50 hidden flex flex-col items-center justify-center">
+            <button onclick="closePlayer()" class="absolute top-4 right-4 z-50 bg-shoufMaroon text-white w-10 h-10 rounded-full flex items-center justify-center font-bold shadow-lg">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="w-full h-full max-w-4xl max-h-[80vh] flex items-center justify-center p-2">
+                <iframe id="video-iframe" class="w-full h-full rounded-2xl border border-rose-900/40 shadow-2xl" src="" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+            </div>
+        </div>
+
+        <!-- نافذة الإعدادات الفرعية -->
+        <div id="settings-modal" class="absolute inset-0 bg-black/80 z-50 hidden flex items-center justify-center p-4 backdrop-blur-sm">
+            <div class="bg-shoufCard border border-rose-900/40 w-full max-w-sm rounded-3xl p-6 shadow-2xl space-y-4">
+                <div class="flex justify-between items-center border-b border-rose-900/30 pb-3">
+                    <h3 id="modal-title" class="font-bold text-white text-base">عنوان النافذة</h3>
+                    <button onclick="closeSettingsModal()" class="text-rose-400 hover:text-white"><i class="fas fa-times"></i></button>
+                </div>
+                <div id="modal-content" class="space-y-3 text-xs text-rose-200"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- جافاسكريبت التطبيق -->
+    <script>
+        const allWorks = [
+            { 
+                title: "بائعة الورد", 
+                poster: "https://images.unsplash.com/photo-1518709268805-4e9042af9f23?auto=format&fit=crop&w=400&q=80", 
+                desc: "ملحمة درامية رومانسية جمعت بين الحب العنيف و الصوت الحنين و النرجسية العالية وسط احكام طبقات المجتمع.", 
+                year: 2010, 
+                country: "تركيا",
+                episodesCount: 73
+            }
+        ];
+
+        function renderHomeWorks() {
+            const container = document.getElementById('home-works-container');
+            if (!container) return;
+            container.innerHTML = '';
+            allWorks.forEach(item => {
+                const card = document.createElement('div');
+                card.className = "cursor-pointer group space-y-2 bg-shoufCard p-2 rounded-2xl border border-rose-900/20 hover:border-rose-600 transition-all";
+                card.onclick = () => openDetail(item);
+                card.innerHTML = `
+                    <div class="w-full h-52 rounded-xl overflow-hidden bg-black shadow">
+                        <img src="${item.poster}" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
+                    </div>
+                    <h4 class="text-sm font-bold text-white text-center truncate">${item.title}</h4>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('splash-screen');
+                const appContainer = document.getElementById('app-container');
+                if (splash) {
+                    splash.style.opacity = '0';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                        if (appContainer) {
+                            appContainer.classList.remove('hidden');
+                            renderHomeWorks();
+                        }
+                    }, 700);
+                }
+            }, 2500);
+        });
+
+        function switchTab(tabName) {
+            ['home', 'search', 'settings'].forEach(tab => {
+                const el = document.getElementById(`tab-${tab}`);
+                const nav = document.getElementById(`nav-${tab}`);
+                if (el) el.classList.add('hidden');
+                if (nav) nav.className = "hover:text-white transition-all";
+            });
+
+            const targetTab = document.getElementById(`tab-${tabName}`);
+            const targetNav = document.getElementById(`nav-${tabName}`);
+            if (targetTab) targetTab.classList.remove('hidden');
+            if (targetNav) targetNav.className = "text-white border-b-2 border-white pb-0.5 transition-all";
+        }
+
+        function handleSearch(query) {
+            const resultsContainer = document.getElementById('search-results');
+            if (!resultsContainer) return;
+            resultsContainer.innerHTML = '';
+
+            if (!query.trim()) {
+                resultsContainer.innerHTML = '<p class="text-xs text-rose-400 text-center mt-6">اكتب اسم المسلسل للبحث عنه فوراً...</p>';
+                return;
+            }
+
+            const filtered = allWorks.filter(item => item.title.includes(query.trim()));
+
+            if (filtered.length === 0) {
+                resultsContainer.innerHTML = '<p class="text-xs text-rose-400 text-center mt-6">لا توجد نتائج مطابقة لبحثك...</p>';
+                return;
+            }
+
+            filtered.forEach(item => {
+                const div = document.createElement('div');
+                div.className = "bg-shoufCard p-3 rounded-xl border border-rose-900/30 flex items-center gap-3 cursor-pointer hover:border-rose-600 transition-all";
+                div.onclick = () => openDetail(item);
+                div.innerHTML = `
+                    <img src="${item.poster}" class="w-12 h-16 rounded-lg object-cover">
+                    <div>
+                        <h4 class="font-bold text-white text-sm">${item.title}</h4>
+                        <p class="text-xs text-rose-400/80">الدولة: ${item.country} • سنة الإنتاج: ${item.year}</p>
+                    </div>
+                `;
+                resultsContainer.appendChild(div);
+            });
+        }
+
+        function openDetail(item) {
+            const posterImg = document.getElementById('detail-poster');
+            const titleEl = document.getElementById('detail-title');
+            const descEl = document.getElementById('detail-desc');
+            const countryEl = document.getElementById('detail-country');
+            const yearEl = document.getElementById('detail-year');
+            const detailPage = document.getElementById('detail-page');
+
+            if (posterImg) posterImg.src = item.poster;
+            if (titleEl) titleEl.innerText = item.title;
+            if (descEl) descEl.innerText = item.desc;
+            if (countryEl) countryEl.innerText = `الدولة: ${item.country}`;
+            if (yearEl) yearEl.innerText = `سنة الإنتاج: ${item.year}`;
+
+            const episodesContainer = document.getElementById('episodes-list');
+            if (episodesContainer) {
+                episodesContainer.innerHTML = '';
+                for (let i = 1; i <= item.episodesCount; i++) {
+                    const ep = document.createElement('div');
+                    ep.className = "bg-shoufCard p-3 rounded-xl border border-rose-900/20 flex items-center justify-between";
+                    
+                    // إذا كانت الحلقة هي الحلقة 73 نقوم بفرزها وتزويدها برابط التشغيل المباشر
+                    const videoUrl = (i === 73) ? "https://www.youtube.com/embed/Us-ReJ03KlM?autoplay=1" : "https://www.youtube.com/embed/Us-ReJ03KlM?autoplay=1";
+
+                    ep.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-shoufMaroon text-white font-bold text-xs flex items-center justify-center">${i}</div>
+                            <span class="text-xs font-bold text-white">الحلقة ${i} ${i === 73 ? '<span class="text-xs text-rose-400 font-normal">(متاحة)</span>' : ''}</span>
+                        </div>
+                        <button onclick="playMedia('${videoUrl}')" class="text-rose-400 hover:text-white text-xs px-2 py-1 bg-shoufMaroon/30 rounded-lg"><i class="fas fa-play ml-1"></i> تشغيل</button>
+                    `;
+                    episodesContainer.appendChild(ep);
+                }
+            }
+
+            if (detailPage) detailPage.classList.remove('hidden');
+        }
+
+        function closeDetail() {
+            const detailPage = document.getElementById('detail-page');
+            if (detailPage) detailPage.classList.add('hidden');
+        }
+
+        function playMedia(url) {
+            const playerModal = document.getElementById('video-player-modal');
+            const iframe = document.getElementById('video-iframe');
+            if (iframe) iframe.src = url || "https://www.youtube.com/embed/Us-ReJ03KlM?autoplay=1";
+            if (playerModal) playerModal.classList.remove('hidden');
+        }
+
+        function closePlayer() {
+            const playerModal = document.getElementById('video-player-modal');
+            const iframe = document.getElementById('video-iframe');
+            if (iframe) iframe.src = ""; // إيقاف تشغيل الفيديو عند إغلاق النوافذ
+            if (playerModal) playerModal.classList.add('hidden');
+        }
+
+        function openSettingsModal(type) {
+            const modal = document.getElementById('settings-modal');
+            const title = document.getElementById('modal-title');
+            const content = document.getElementById('modal-content');
+            if (!modal) return;
+            modal.classList.remove('hidden');
+
+            if (type === 'login') {
+                if (title) title.innerText = "سجل الدخول";
+                if (content) content.innerHTML = `
+                    <p class="text-xs text-rose-300">سجل الدخول برقم الهاتف، الإيميل، أو البريد الإلكتروني:</p>
+                    <input type="text" placeholder="أدخل رقم الهاتف أو البريد" class="w-full bg-shoufBg border border-rose-900/40 rounded-xl px-3 py-2 text-white text-xs focus:outline-none focus:border-rose-600">
+                    <button onclick="alert('تم إرسال رمز التحقق بنجاح'); closeSettingsModal();" class="w-full py-2.5 bg-shoufMaroon text-white font-bold rounded-xl text-xs hover:bg-rose-900">متابعة</button>
+                `;
+            } else if (type === 'downloads') {
+                if (title) title.innerText = "التحميلات";
+                if (content) content.innerHTML = `<p class="text-xs text-rose-300 text-center py-4">قائمة التحميلات فارغة حالياً.</p>`;
+            } else if (type === 'policy') {
+                if (title) title.innerText = "سياسة التطبيق";
+                if (content) content.innerHTML = `<p class="text-xs text-rose-300 leading-relaxed">تلتزم منصة "شوڤ" بتوفير تجربة مشاهدة فريدة وآمنة، مع الحفاظ على حقوق الطبع والنشر والخصوصية الكاملة للمستخدمين.</p>`;
+            } else if (type === 'customization') {
+                if (title) title.innerText = "تخصيص المحتوى";
+                if (content) content.innerHTML = `
+                    <div class="space-y-2">
+                        <label class="block text-xs font-bold text-white">الجنسية:</label>
+                        <select class="w-full bg-shoufBg border border-rose-900/40 rounded-xl px-2 py-1.5 text-white text-xs"><option>الكل</option><option>تركيا</option><option>عربي</option><option>أجنبي</option></select>
+                        <label class="block text-xs font-bold text-white mt-2">سنة الإنتاج:</label>
+                        <select class="w-full bg-shoufBg border border-rose-900/40 rounded-xl px-2 py-1.5 text-white text-xs"><option>2010</option><option>2026</option><option>2025</option></select>
+                        <button onclick="closeSettingsModal()" class="w-full py-2 bg-shoufMaroon text-white font-bold rounded-xl text-xs mt-3">تطبيق</button>
+                    </div>
+                `;
+            }
+        }
+
+        function closeSettingsModal() {
+            const modal = document.getElementById('settings-modal');
+            if (modal) modal.classList.add('hidden');
+        }
+    </script>
+</body>
+</html>
